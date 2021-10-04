@@ -41,6 +41,8 @@ wss.on('connection', (ws) => {
     ws.on('close', () => {
         clients.delete(ws);
     });
+  
+    setTimeout(() => ws.emit('send', 'TESTANDOOOOOO'), 5000)
 })
 
 
@@ -50,5 +52,3 @@ function uuidv4() {
     return v.toString(16);
   });
 }
-
-setTimeout(() => currentWS.emit('send', 'TESTANDOOOOOO'), 5000)
