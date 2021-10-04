@@ -1,6 +1,10 @@
 const socketFunctions = {
-    teste() {
-        console.log('oi');
+    draw(data) {
+        console.log('draw');
+    },
+
+    clear(data) {
+        console.log('clear');
     }
 }
 

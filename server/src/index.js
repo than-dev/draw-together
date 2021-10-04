@@ -14,16 +14,14 @@ wss.on('connection', (ws) => {
     const metadata = { id, color };
 
     clients.set(ws, metadata);
-  
-  console.log(clients.get(ws));
+    console.log(clients.get(ws));
   
     ws.addListener('send', (message) => {
       ws.send(JSON.stringify({
+        event: 'start',
         message
       }))  
     })
-    console.log(ws.eventNames())
-    
     
     ws.addListener('message', async (messageAsString) => {
       const message = await JSON.parse(messageAsString);
@@ -36,6 +34,10 @@ wss.on('connection', (ws) => {
 
       message.sender = metadata.id;
       message.color = metadata.color
+    })
+  
+    ws.addEventListener('draw', (data) => {
+      console.log(data);
     })
     
     ws.on('close', () => {
