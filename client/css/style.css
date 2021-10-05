@@ -86,3 +86,14 @@ main .clear {
 	outline: none;
 	cursor: pointer;
 }
+
+input {
+	margin-left: 2px;
+	border: 2px solid black;
+	font-size: 22px;
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	max-width: 80px;
+	min-width: 80px;
+	min-height: 30px;
+	max-height: 30px;
+}

@@ -1,4 +1,5 @@
 let ws;
+let firstExecution = true;
 
 const canvas = document.querySelector('canvas');
 const ctx = canvas.getContext('2d');
@@ -7,13 +8,31 @@ const color_picker = document.querySelector('.color-picker');
 let isDrawing = false
 
 const drawer = {
-    draw({ clientX: x, clientY: y }) {
-        ws.emit('draw', { clientX: x, clientY: y })
+    draw(data, emitSocket = true) {
+        const colorHex = `#${color_picker.value}`
+        const strokeWeight = stroke_weight.value
+        
+        const {
+            clientX: x,
+            clientY: y,
+            lineWidth,
+            color
+        } = data
+        
+        if (emitSocket && isDrawing) {
+            ws.emit('draw', {
+                clientX: x,
+                clientY: y,
+                lineWidth: strokeWeight,
+                color: colorHex
+            })
+        }
 
-        if (!isDrawing) return;
-        ctx.lineWidth = stroke_weight.value;
+        if (!isDrawing && emitSocket) return;
+
+        ctx.lineWidth = lineWidth ? lineWidth : strokeWeight;
         ctx.lineCap = "round";
-        ctx.strokeStyle = color_picker.value;
+        ctx.strokeStyle = color ? color : colorHex;
 
         ctx.lineTo(x, y);
         ctx.stroke();
@@ -21,12 +40,19 @@ const drawer = {
         ctx.moveTo(x, y);
     },
 
+    beginPath() {
+        ctx.beginPath()
+    },
+
     stop() {
         isDrawing = false;
         ctx.beginPath();
     },
 
-    clearCanvas() {
+    clearCanvas(emitSocket = true) {
+        if (emitSocket) {
+            ws.emit('clearCanvas')
+        }
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     },
 
@@ -34,8 +60,10 @@ const drawer = {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
     },
-
+    
     start(event) {
+        ws.emit('beginPath')
+        ctx.beginPath()
         isDrawing = true;
         drawer.draw(event);
     }
@@ -43,7 +71,13 @@ const drawer = {
     
 function addEvents() {
     const clearButton = document.querySelector('.clear');
-    
+
+    const colorInput = document.querySelector('.colors input')
+    const colorSection = document.querySelector('.colors')
+    colorInput.addEventListener('blur', (input) => {
+        colorSection.style.backgroundColor = `#${input.target.value}`
+    })
+
     canvas.addEventListener('mousedown', drawer.start);
     canvas.addEventListener('mousemove', drawer.draw);
     canvas.addEventListener('mouseup', drawer.stop);
@@ -66,11 +100,16 @@ async function connectToServer() {
     ws = await connectToServer()
 
     ws.onmessage = (webSocketMessage) => {
-        const messageBody = JSON.parse(webSocketMessage.data);
-        console.log('Data received successfully', messageBody);
+        const { data, event } = JSON.parse(webSocketMessage.data);
+
+        if (event === 'draw') {
+            drawer[event](data, false)
+        }
+
+        drawer[event](false)
     };
 
-    ws.emit = (event, data) => {
+    ws.emit = (event, data = null) => {
         ws.send(JSON.stringify({
             event,
             data
@@ -79,5 +118,3 @@ async function connectToServer() {
 
     addEvents()
 })();
-
-
