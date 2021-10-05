@@ -78,6 +78,9 @@ function addEvents() {
         colorSection.style.backgroundColor = `#${input.target.value}`
     })
 
+    canvas.addEventListener('mouseleave', (event) => {
+        drawer.stop()
+    })
     canvas.addEventListener('mousedown', drawer.start);
     canvas.addEventListener('mousemove', drawer.draw);
     canvas.addEventListener('mouseup', drawer.stop);
